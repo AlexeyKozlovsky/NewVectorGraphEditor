@@ -24,7 +24,23 @@ namespace NewVectorGraphEditorWPF.Models {
         #endregion
 
         #region Properties
-
+        public VField Field {
+            get => field;  set {
+                if (field == null) return;
+                field = value;
+                field.Add(this);
+                this.positionX = 0;
+                this.positionY = 0;
+            }
+        }
+        
+        public double PositionX {
+            get => positionX;
+        }
+        
+        public double PositionY {
+            get => positionY;
+        }
         #endregion
 
         #region Constructors
@@ -96,6 +112,13 @@ namespace NewVectorGraphEditorWPF.Models {
         public void ChangeStrokeThickness(int strokeThickness) {
             if (strokeThickness > 0) this.strokeThickness = strokeThickness;
         }
+
+        public void SetPosition(double x, double y) {
+            positionX = x;
+            positionY = y;
+        }
+
+        public void SetName(string name) => this.name = name;
         #endregion
 
     }
