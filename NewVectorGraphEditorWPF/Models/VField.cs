@@ -20,6 +20,9 @@ namespace NewVectorGraphEditorWPF.Models {
         public VField(double width, double height) : base() {
             this.width = width;
             this.height = height;
+            this.shapeDict.Add(VShapeType.VEllipse, 0);
+            this.shapeDict.Add(VShapeType.VRectangle, 0);
+            this.shapeDict.Add(VShapeType.VTriangle, 0);
         }
         #endregion
 

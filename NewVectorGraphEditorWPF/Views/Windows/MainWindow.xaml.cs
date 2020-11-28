@@ -25,6 +25,7 @@ namespace NewVectorGraphEditorWPF {
         private MainWindowVM vm;
         private DrawCollection<Shape> shapes;
         private int selectedShapeIndex;
+        private bool isPressed;
         #endregion
 
         public MainWindow() {
@@ -42,40 +43,107 @@ namespace NewVectorGraphEditorWPF {
         /// <param name="x">Координата верхнего левого угла описанного прямоугольника по оси OX</param>
         /// <param name="y">Координата верхнего левого угла описанного прямоугольника по оси OY</param>
         private void DrawEllipse(double x, double y) {
-            VEllipse el = new VEllipse(0, 0);
-            vm.Field.VField.Add(el);
-            
+            VEllipse vEl = new VEllipse(0, 0);
+            vm.Field.VField.Add(vEl);
+            vEl.SetPosition(x, y);
 
             Shape el = new Ellipse();
+            el.Width = 0;
+            el.Height = 0;
+            el.Fill = new SolidColorBrush(Color.FromArgb(vEl.Fill.Alpha, vEl.Fill.Red, vEl.Fill.Green, vEl.Fill.Blue));
+            el.Stroke = new SolidColorBrush(Color.FromArgb(vEl.Stroke.Alpha, vEl.Stroke.Red, vEl.Stroke.Green, vEl.Stroke.Blue));
+            el.StrokeThickness = vEl.StrokeThickness;
+            Canvas.SetLeft(el, x);
+            Canvas.SetTop(el, y);
 
+            canvas.Children.Add(el);
+            shapes.Add(el);
         }
 
         /// <summary>
         /// Создает на векторном поле прямоугольник и рисует его на канвасе
         /// </summary>
-        private void DrawRectangle() {
+        private void DrawRectangle(double x, double y) {
+            VRectangle vRect = new VRectangle(0, 0);
+            vm.Field.VField.Add(vRect);
+            vRect.SetPosition(x, y);
 
+            Shape rect = new Rectangle();
+            rect.Width = 0;
+            rect.Height = 0;
+            rect.Fill = new SolidColorBrush(Color.FromArgb(vRect.Fill.Alpha, vRect.Fill.Red, vRect.Fill.Green, vRect.Fill.Blue));
+            rect.Stroke = new SolidColorBrush(Color.FromArgb(vRect.Stroke.Alpha, vRect.Stroke.Red, vRect.Stroke.Green, vRect.Stroke.Blue));
+            rect.StrokeThickness = vRect.StrokeThickness;
+            Canvas.SetLeft(rect, x);
+            Canvas.SetTop(rect, y);
+
+            canvas.Children.Add(rect);
+            shapes.Add(rect);
         }
 
         /// <summary>
         /// Создает на векторном поле треугольник и рисует его на канвасе
         /// </summary>
-        private void DrawTriangle() {
+        private void DrawTriangle(double x, double y) {
+            VTriangle vTr = new VTriangle(0, 0);
+            vm.Field.VField.Add(vTr);
+            vTr.SetPosition(x, y);
 
+            Polygon tr = new Polygon();
+            tr.Width = 0;
+            tr.Height = 0;
+            tr.Fill = new SolidColorBrush(Color.FromArgb(vTr.Fill.Alpha, vTr.Fill.Red, vTr.Fill.Green, vTr.Fill.Blue));
+            tr.Stroke = new SolidColorBrush(Color.FromArgb(vTr.Stroke.Alpha, vTr.Stroke.Red, vTr.Stroke.Green, vTr.Stroke.Blue));
+            Canvas.SetLeft(tr, x);
+            Canvas.SetTop(tr, y);
+            canvas.Children.Add(tr);
+            shapes.Add(tr);
         }
 
+        private void UpdateTriangle(double x, double y) {
+            int selectedShapeIndex = vm.Field.VField.GetSelectedShapeIndex();
+            if (!(vm.Field.VField.GetSelectedShape() is VTriangle)) return;
+            if (selectedShapeIndex == -1) return;
+
+            double selectedPositionX = vm.Field.VField.GetSelectedShape().PositionX;
+            double selectedPositionY = vm.Field.VField.GetSelectedShape().PositionY;
+            double minX = Math.Min(x, selectedPositionX);
+            double minY = Math.Min(y, selectedPositionY);
+            double width = Math.Abs(x - selectedPositionX);
+            double height = Math.Abs(y - selectedPositionY);
+
+            Polygon tr = (Polygon)shapes[selectedShapeIndex];
+            tr.Points = new PointCollection() {
+                new Point(minX, minY + height),
+                new Point(minX + width, minY + height),
+                new Point(minX + width/2, minY)
+            };
+        }
         /// <summary>
         /// Обновляет отрисовку текущей (выделенной) фигуры. Должен выполняться в фоновом потоке!
         /// </summary>
-        private void UpdateSelectedShape() {
+        private void UpdateSelectedShape(double x, double y) {
+            if (vm.Mode == EditMode.DrawTrMode) {
+                UpdateTriangle(x, y);
+                return;
+            }
 
+            int selectedShapeIndex = vm.Field.VField.GetSelectedShapeIndex();
+            if (selectedShapeIndex == -1) return;
+
+            double selectedPosX = vm.Field.VField.GetSelectedShape().PositionX;
+            double selectedPosY = vm.Field.VField.GetSelectedShape().PositionY;
+
+            Shape shape = shapes[selectedShapeIndex];
+            Canvas.SetLeft(shape, Math.Min(selectedPosX, x));
+            Canvas.SetTop(shape, Math.Min(selectedPosY, y));
         }
         #endregion
         /// <summary>
         /// Метод для события нажатия левой кнопки мыши по канвасу
         /// </summary>
         private void CanvasMouseLeftDown() {
-
+            
         }
 
         /// <summary>

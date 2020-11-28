@@ -41,6 +41,13 @@ namespace NewVectorGraphEditorWPF.Models {
         public double PositionY {
             get => positionY;
         }
+
+        public VColor Fill { get => fill; }
+        public VColor Stroke { get => stroke; }
+        public int StrokeThickness {
+            get => strokeThickness;
+            set => strokeThickness = value;
+        }
         #endregion
 
         #region Constructors
