@@ -59,7 +59,7 @@
 
             <Border BorderBrush="DimGray" BorderThickness="2" Margin="5">
                 <Canvas  x:Name="canvas" Background="White" MouseLeftButtonDown="canvas_MouseLeftButtonDown"
-                         MouseLeftButtonUp="canvas_MouseLeftButtonUp"/>
+                         MouseLeftButtonUp="canvas_MouseLeftButtonUp" MouseMove="canvas_MouseMove"/>
             </Border>
 
             <Grid Grid.Row="0" Grid.Column="1">
@@ -96,7 +96,7 @@
                 </Border>
 
                 <Border BorderBrush="DimGray" BorderThickness="2" Margin="5">
-                    <Grid x:Name="propGrid" Visibility="Hidden">
+                    <Grid x:Name="propGrid" >
                         <Grid.RowDefinitions>
                             <RowDefinition/>
                             <RowDefinition Height="8*"/>

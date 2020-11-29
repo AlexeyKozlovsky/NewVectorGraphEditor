@@ -50,6 +50,11 @@ namespace NewVectorGraphEditorWPF.ViewModels {
         }
         #endregion
 
+        #region Constructors
+        public MainWindowVM() {
+            Field = new VFieldVM();
+        }
+        #endregion
 
 
     }

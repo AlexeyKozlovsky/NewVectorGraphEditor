@@ -55,7 +55,9 @@ namespace NewVectorGraphEditorWPF.Models {
         public VShape(double width, double height) {
             this.width = width;
             this.height = height;
-            
+            this.strokeThickness = 2;
+            this.stroke = VColor.BLACK;
+            this.fill = VColor.WHITE;
         }
 
         public VShape(double width, double height, VColor fill, VColor stroke) {
@@ -63,6 +65,7 @@ namespace NewVectorGraphEditorWPF.Models {
             this.height = height;
             this.fill = fill;
             this.stroke = stroke;
+            this.strokeThickness = 2;
         }
 
         public VShape(double width, double height, VColor fill, VColor stroke, int strokeThickness) {

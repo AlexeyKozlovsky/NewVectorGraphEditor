@@ -20,5 +20,6 @@ namespace NewVectorGraphEditorWPF.ViewModels {
             }
         }
         #endregion
+
     }
 }

@@ -15,6 +15,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 
 namespace NewVectorGraphEditorWPF {
     /// <summary>
@@ -31,7 +32,9 @@ namespace NewVectorGraphEditorWPF {
         public MainWindow() {
             InitializeComponent();
             vm = (MainWindowVM)DataContext;
+            shapes = new DrawCollection<Shape>();
             selectedShapeIndex = -1;
+            vm.Field.VField = new VField(canvas.Width, canvas.Height);
         }
 
         #region Methods
@@ -46,18 +49,24 @@ namespace NewVectorGraphEditorWPF {
             VEllipse vEl = new VEllipse(0, 0);
             vm.Field.VField.Add(vEl);
             vEl.SetPosition(x, y);
+            vEl.ChangeBorderColor(VColor.BLACK);
+            vEl.ChangeFillColor(VColor.WHITE);
+            
 
             Shape el = new Ellipse();
             el.Width = 0;
             el.Height = 0;
             el.Fill = new SolidColorBrush(Color.FromArgb(vEl.Fill.Alpha, vEl.Fill.Red, vEl.Fill.Green, vEl.Fill.Blue));
             el.Stroke = new SolidColorBrush(Color.FromArgb(vEl.Stroke.Alpha, vEl.Stroke.Red, vEl.Stroke.Green, vEl.Stroke.Blue));
+            //el.Fill = Brushes.Red;
+            //el.Stroke = Brushes.Black;
             el.StrokeThickness = vEl.StrokeThickness;
             Canvas.SetLeft(el, x);
             Canvas.SetTop(el, y);
 
             canvas.Children.Add(el);
             shapes.Add(el);
+            selectedShapeIndex = shapes.Count - 1;
         }
 
         /// <summary>
@@ -67,6 +76,8 @@ namespace NewVectorGraphEditorWPF {
             VRectangle vRect = new VRectangle(0, 0);
             vm.Field.VField.Add(vRect);
             vRect.SetPosition(x, y);
+            vRect.ChangeBorderColor(VColor.BLACK);
+            vRect.ChangeFillColor(VColor.WHITE);
 
             Shape rect = new Rectangle();
             rect.Width = 0;
@@ -79,6 +90,7 @@ namespace NewVectorGraphEditorWPF {
 
             canvas.Children.Add(rect);
             shapes.Add(rect);
+            selectedShapeIndex = shapes.Count - 1;
         }
 
         /// <summary>
@@ -88,6 +100,8 @@ namespace NewVectorGraphEditorWPF {
             VTriangle vTr = new VTriangle(0, 0);
             vm.Field.VField.Add(vTr);
             vTr.SetPosition(x, y);
+            vTr.ChangeFillColor(VColor.WHITE);
+            vTr.ChangeBorderColor(VColor.BLACK);
 
             Polygon tr = new Polygon();
             tr.Width = 0;
@@ -98,6 +112,7 @@ namespace NewVectorGraphEditorWPF {
             Canvas.SetTop(tr, y);
             canvas.Children.Add(tr);
             shapes.Add(tr);
+            selectedShapeIndex = shapes.Count - 1;
         }
 
         private void UpdateTriangle(double x, double y) {
@@ -112,17 +127,30 @@ namespace NewVectorGraphEditorWPF {
             double width = Math.Abs(x - selectedPositionX);
             double height = Math.Abs(y - selectedPositionY);
 
+
             Polygon tr = (Polygon)shapes[selectedShapeIndex];
+            tr.Width = width;
+            tr.Height = height;
             tr.Points = new PointCollection() {
-                new Point(minX, minY + height),
-                new Point(minX + width, minY + height),
-                new Point(minX + width/2, minY)
+                new Point(0, height),
+                new Point(width, height),
+                new Point(width/2, 0)
             };
+            
+            Canvas.SetLeft(tr, minX);
+            Canvas.SetTop(tr, minY);
+            vm.Field.VField.GetSelectedShape().ChangeSize(width, height);
+            //vm.Field.VField.GetSelectedShape().SetPosition(minX, minY);
+
         }
         /// <summary>
         /// Обновляет отрисовку текущей (выделенной) фигуры. Должен выполняться в фоновом потоке!
         /// </summary>
-        private void UpdateSelectedShape(double x, double y) {
+        private void UpdateSelectedShape() {
+            if (!isPressed) return;
+            double x = Mouse.GetPosition(canvas).X;
+            double y = Mouse.GetPosition(canvas).Y;
+
             if (vm.Mode == EditMode.DrawTrMode) {
                 UpdateTriangle(x, y);
                 return;
@@ -134,9 +162,16 @@ namespace NewVectorGraphEditorWPF {
             double selectedPosX = vm.Field.VField.GetSelectedShape().PositionX;
             double selectedPosY = vm.Field.VField.GetSelectedShape().PositionY;
 
+
             Shape shape = shapes[selectedShapeIndex];
             Canvas.SetLeft(shape, Math.Min(selectedPosX, x));
             Canvas.SetTop(shape, Math.Min(selectedPosY, y));
+            shape.Width = Math.Abs(selectedPosX - x);
+            shape.Height = Math.Abs(selectedPosY - y);
+            vm.Field.VField.GetSelectedShape().ChangeSize(shape.Width, shape.Height);
+            //vm.Field.VField.GetSelectedShape().SetPosition(Math.Min(selectedPosX, x), Math.Min(selectedPosY, y));
+            Console.WriteLine("working...");
+            Console.WriteLine(shape.Width);
         }
         #endregion
         /// <summary>
@@ -144,13 +179,42 @@ namespace NewVectorGraphEditorWPF {
         /// </summary>
         private void CanvasMouseLeftDown() {
             
+            if (vm.Mode != EditMode.SelectMode) this.isPressed = true;
+            Point position = Mouse.GetPosition(canvas);
+
+            switch (vm.Mode) {
+                case EditMode.DrawElMode:
+                    DrawEllipse(position.X, position.Y);
+                    return;
+                case EditMode.DrawRectMode:
+                    DrawRectangle(position.X, position.Y);
+                    return;
+                case EditMode.DrawTrMode:
+                    DrawTriangle(position.X, position.Y);
+                    return;
+            }
+
+        }
+
+        /// <summary>
+        /// Метод для события CanvasMouseMove
+        /// </summary>
+        private void MouseMove() {
+            if (selectedShapeIndex == -1) return;
+            try {
+                shapes[selectedShapeIndex]?.Dispatcher.Invoke(DispatcherPriority.Background, new Action(() => {
+                    UpdateSelectedShape();
+                }));
+            } catch {
+                return;
+            }
         }
 
         /// <summary>
         /// Метод для события отпускания левой кнопки мыши по канвасу
         /// </summary>
         private void CanvasMouseLeftUp() {
-
+            this.isPressed = false;
         }
 
         /// <summary>
@@ -166,6 +230,9 @@ namespace NewVectorGraphEditorWPF {
                     Blue = cd.Color.B
                 });
             }
+
+            VColor vFillColor = vm.Field.VField.GetSelectedShape().Fill;
+            shapes[selectedShapeIndex].Fill = new SolidColorBrush(Color.FromArgb(vFillColor.Alpha, vFillColor.Red, vFillColor.Green, vFillColor.Blue));
         }
 
         /// <summary>
@@ -181,6 +248,9 @@ namespace NewVectorGraphEditorWPF {
                     Blue = cd.Color.B
                 });
             }
+
+            VColor vStrokeColor = vm.Field.VField.GetSelectedShape().Stroke;
+            shapes[selectedShapeIndex].Stroke = new SolidColorBrush(Color.FromArgb(vStrokeColor.Alpha, vStrokeColor.Red, vStrokeColor.Green, vStrokeColor.Blue));
         }
 
         /// <summary>
@@ -333,6 +403,8 @@ namespace NewVectorGraphEditorWPF {
         /// <param name="sender"></param>
         /// <param name="e"></param>
         private void canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) => CanvasMouseLeftUp();
+        private void canvas_MouseMove(object sender, System.Windows.Input.MouseEventArgs e) => MouseMove();
+
         #endregion
 
 

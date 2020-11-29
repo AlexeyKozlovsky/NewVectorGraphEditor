@@ -20,6 +20,7 @@ namespace NewVectorGraphEditorWPF.Models {
         public VField(double width, double height) : base() {
             this.width = width;
             this.height = height;
+            this.shapeDict = new Dictionary<VShapeType, int>();
             this.shapeDict.Add(VShapeType.VEllipse, 0);
             this.shapeDict.Add(VShapeType.VRectangle, 0);
             this.shapeDict.Add(VShapeType.VTriangle, 0);
@@ -32,7 +33,7 @@ namespace NewVectorGraphEditorWPF.Models {
         /// </summary>
         /// <param name="i">Индекс фигуры в списке фигур</param>
         public void SetSelectedShape(int i) {
-            if (i < 0 || i >= this.shapes.Count) throw new Exception();
+            if (i < -1 || i >= this.shapes.Count) throw new Exception();
             this.selectedShape = i;
         }
 

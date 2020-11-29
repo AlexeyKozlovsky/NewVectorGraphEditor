@@ -40,6 +40,7 @@ namespace NewVectorGraphEditorWPF.Models {
 
         #region Properties
         public T this[int index] { get => objs[index]; }
+        public int Count { get => objs.Count; }
         #endregion
 
         #region Methods
@@ -136,5 +137,8 @@ namespace NewVectorGraphEditorWPF.Models {
         }
         #endregion
 
+        public DrawCollection() {
+            this.objs = new List<T>();
+        }
     }
 }
