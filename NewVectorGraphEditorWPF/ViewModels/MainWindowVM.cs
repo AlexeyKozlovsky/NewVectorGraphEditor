@@ -14,7 +14,7 @@ namespace NewVectorGraphEditorWPF.ViewModels {
         private string selectedShapeHeightString;
         private string selectedShapeThicknessString;
 
-        
+        private DrawCollection<string> elementsListBoxStrings;
         #endregion
 
         #region Properties
@@ -46,6 +46,13 @@ namespace NewVectorGraphEditorWPF.ViewModels {
             get => selectedShapeThicknessString; set {
                 selectedShapeThicknessString = value;
                 OnPropertyChanged("SelectedShapeThicknessString");
+            }
+        }
+
+        public DrawCollection<string> ElementsListBoxStrings {
+            get => elementsListBoxStrings; set {
+                elementsListBoxStrings = value;
+                OnPropertyChanged("ElementsListBoxString");
             }
         }
         #endregion

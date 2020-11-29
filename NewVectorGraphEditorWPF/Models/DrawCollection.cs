@@ -135,6 +135,18 @@ namespace NewVectorGraphEditorWPF.Models {
 
             LiftStraightUp(i);
         }
+
+        public void LiftStraightDown(int i) {
+            if (i > 0) {
+                LiftDown(i);
+                LiftStraightDown(i - 1);
+            }
+        }
+
+        public void ListStraightDown(T sh) {
+            int selectedIndex = objs.IndexOf(sh);
+            LiftStraightDown(selectedIndex);
+        }
         #endregion
 
         public DrawCollection() {

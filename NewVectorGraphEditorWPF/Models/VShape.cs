@@ -48,6 +48,10 @@ namespace NewVectorGraphEditorWPF.Models {
             get => strokeThickness;
             set => strokeThickness = value;
         }
+
+        public double Height { get => height; }
+        public double Width { get => width; }
+        
         #endregion
 
         #region Constructors

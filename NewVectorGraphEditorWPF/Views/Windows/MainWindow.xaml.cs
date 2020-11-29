@@ -2,7 +2,9 @@
 using NewVectorGraphEditorWPF.ViewModels;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -21,12 +23,29 @@ namespace NewVectorGraphEditorWPF {
     /// <summary>
     /// Логика взаимодействия для MainWindow.xaml
     /// </summary>
-    public partial class MainWindow : Window {
-        #region Properties
+    public partial class MainWindow : Window, INotifyPropertyChanged {
+        #region INotifyPropertyChanged implementation
+        public event PropertyChangedEventHandler PropertyChanged;
+        public void OnPropertyChanged([CallerMemberName] string prop = null) =>
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+        #endregion
+
+        #region Fields
         private MainWindowVM vm;
         private DrawCollection<Shape> shapes;
         private int selectedShapeIndex;
         private bool isPressed;
+
+        
+        #endregion
+
+        #region Properties
+        private DrawCollection<Shape> Shapes {
+            get => shapes; set {
+                shapes = value;
+                OnPropertyChanged("Shapes");
+            }
+        }
         #endregion
 
         public MainWindow() {
@@ -35,9 +54,62 @@ namespace NewVectorGraphEditorWPF {
             shapes = new DrawCollection<Shape>();
             selectedShapeIndex = -1;
             vm.Field.VField = new VField(canvas.Width, canvas.Height);
+            propGrid.Visibility = Visibility.Hidden;
         }
 
         #region Methods
+        private void UpdatePropGrid() {
+            currentElementNameTextBox.Text = vm.Field.VField.NamesStrings[vm.Field.VField.GetSelectedShapeIndex()];
+            currentElementHeightTextBox.Text = vm.Field.VField[selectedShapeIndex].Height.ToString();
+            currentElementWidthTextBox.Text = vm.Field.VField[selectedShapeIndex].Width.ToString();
+            currentElementThicknessTextBox.Text = vm.Field.VField[selectedShapeIndex].StrokeThickness.ToString();
+        }
+
+        private void UpdateElementsList() {
+            int i = 0;
+            foreach (string name in vm.Field.VField.NamesStrings) {
+                if ((string)elementsListBox.Items[i] != name) elementsListBox.Items[i] = name;
+                i++;
+            }
+        }
+
+        private void UpdateSelectedShapeWithPropGrid() {
+            double newWidth = double.Parse(currentElementWidthTextBox.Text);
+            double newHeight = double.Parse(currentElementHeightTextBox.Text);
+            int newThickness = int.Parse(currentElementThicknessTextBox.Text);
+
+            if (newWidth <= 0 || newHeight <= 0 || newThickness <= 0) {
+                System.Windows.MessageBox.Show("Характеристики не могут быть отрицательными");
+                UpdatePropGrid();
+                return;
+            }
+
+            VShape shape = vm.Field.VField.GetSelectedShape();
+            shape.ChangeSize(newWidth, newHeight);
+            shape.ChangeStrokeThickness(newThickness);
+            shapes[selectedShapeIndex].Width = newWidth;
+            shapes[selectedShapeIndex].Height = newHeight;
+        }
+
+        private void UpdateSelectedWidth() {
+            double newWidth;
+            try { newWidth = double.Parse(currentElementWidthTextBox.Text); } catch {
+                System.Windows.MessageBox("")
+            }
+            double 
+            if (newWidth <= 0) {
+                System.Windows.MessageBox.Show("Ширина введена некорректно");
+            }
+
+        }
+
+        private void UpdateSelectedHeight() {
+
+        }
+
+        private void UpdateSelectedThickness() {
+
+        }
         #region Drawing Methods
 
         /// <summary>
@@ -67,6 +139,9 @@ namespace NewVectorGraphEditorWPF {
             canvas.Children.Add(el);
             shapes.Add(el);
             selectedShapeIndex = shapes.Count - 1;
+            elementsListBox.Items.Add(vm.Field.VField.NamesStrings[vm.Field.VField.NamesStrings.Count - 1]);
+            propGrid.Visibility = Visibility.Visible;
+            UpdatePropGrid();
         }
 
         /// <summary>
@@ -91,6 +166,9 @@ namespace NewVectorGraphEditorWPF {
             canvas.Children.Add(rect);
             shapes.Add(rect);
             selectedShapeIndex = shapes.Count - 1;
+            elementsListBox.Items.Add(vm.Field.VField.NamesStrings[vm.Field.VField.NamesStrings.Count - 1]);
+            propGrid.Visibility = Visibility.Visible;
+            UpdatePropGrid();
         }
 
         /// <summary>
@@ -113,6 +191,9 @@ namespace NewVectorGraphEditorWPF {
             canvas.Children.Add(tr);
             shapes.Add(tr);
             selectedShapeIndex = shapes.Count - 1;
+            elementsListBox.Items.Add(vm.Field.VField.NamesStrings[vm.Field.VField.NamesStrings.Count - 1]);
+            propGrid.Visibility = Visibility.Visible;
+            UpdatePropGrid();
         }
 
         private void UpdateTriangle(double x, double y) {
@@ -215,6 +296,7 @@ namespace NewVectorGraphEditorWPF {
         /// </summary>
         private void CanvasMouseLeftUp() {
             this.isPressed = false;
+            UpdatePropGrid();
         }
 
         /// <summary>
@@ -287,6 +369,12 @@ namespace NewVectorGraphEditorWPF {
 
         private void LiftStraightDown() {
 
+        }
+
+        private void SelectionChanged() {
+            selectedShapeIndex = elementsListBox.SelectedIndex;
+            vm.Field.VField.SetSelectedShape(selectedShapeIndex);
+            UpdatePropGrid();
         }
 
         #endregion
@@ -405,6 +493,19 @@ namespace NewVectorGraphEditorWPF {
         private void canvas_MouseLeftButtonUp(object sender, MouseButtonEventArgs e) => CanvasMouseLeftUp();
         private void canvas_MouseMove(object sender, System.Windows.Input.MouseEventArgs e) => MouseMove();
 
+        private void elementsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => SelectionChanged();
+
+        private void currentElementWidthTextBox_LostFocus(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void currentElementHeightTextBox_LostFocus(object sender, RoutedEventArgs e) {
+
+        }
+
+        private void currentElementThicknessTextBox_LostFocus(object sender, RoutedEventArgs e) {
+
+        }
         #endregion
 
 

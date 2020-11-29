@@ -14,6 +14,14 @@ namespace NewVectorGraphEditorWPF.Models {
         private double height;                          // Высота поля
         private int selectedShape;                      // Индекс выделенной фигуры
         private Dictionary<VShapeType, int> shapeDict;  // Словарь фигур, показывающий сколько фигур каждого типа есть на поле
+        private DrawCollection<string> namesStrings;
+        #endregion
+
+        #region Properties
+        public DrawCollection<string> NamesStrings { get => namesStrings; }
+        public VShape this[int index] {
+            get => shapes[index];
+        }
         #endregion
 
         #region Constructors
@@ -24,6 +32,7 @@ namespace NewVectorGraphEditorWPF.Models {
             this.shapeDict.Add(VShapeType.VEllipse, 0);
             this.shapeDict.Add(VShapeType.VRectangle, 0);
             this.shapeDict.Add(VShapeType.VTriangle, 0);
+            this.namesStrings = new DrawCollection<string>();
         }
         #endregion
 
@@ -81,19 +90,22 @@ namespace NewVectorGraphEditorWPF.Models {
         /// </summary>
         /// <param name="shape"></param>
         public override void Add(VShape shape) {
+            
             base.Add(shape);
             this.selectedShape = this.shapes.Count - 1;
-            
+            string name = "";
             if (shape is VRectangle) {
                 shapeDict[VShapeType.VRectangle]++;
-                shape.SetName($"Rectangle {shapeDict[VShapeType.VRectangle]}");
+                name = $"Rectangle {shapeDict[VShapeType.VRectangle]}";
             } else if (shape is VEllipse) {
                 shapeDict[VShapeType.VEllipse]++;
-                shape.SetName($"Ellipse {shapeDict[VShapeType.VEllipse]}");
+                name = $"Ellipse {shapeDict[VShapeType.VEllipse]}";
             } else if (shape is VTriangle) {
                 shapeDict[VShapeType.VTriangle]++;
-                shape.SetName($"Triangle {shapeDict[VShapeType.VTriangle]}");
-            } 
+                name = $"Triangle {shapeDict[VShapeType.VTriangle]}";
+            }
+            namesStrings.Add(name);
+            shape.SetName(name);
         }
 
         /// <summary>
@@ -103,20 +115,21 @@ namespace NewVectorGraphEditorWPF.Models {
         public override void Remove(VShape shape) {
             base.Remove(shape);
             this.selectedShape = this.shapes.Count - 1;
+            string name = "";
 
             if (shape is VRectangle) {
                 if (shapeDict[VShapeType.VTriangle] == 0) return;
                 shapeDict[VShapeType.VRectangle]--;
-                shape.SetName($"Rectangle {shapeDict[VShapeType.VRectangle]}");
             } else if (shape is VEllipse) {
                 if (shapeDict[VShapeType.VEllipse] == 0) return;
-                shapeDict[VShapeType.VEllipse]++;
-                shape.SetName($"Ellipse {shapeDict[VShapeType.VEllipse]}");
+                shapeDict[VShapeType.VEllipse]--;
             } else if (shape is VTriangle) {
                 if (shapeDict[VShapeType.VTriangle] == 0) return;
-                shapeDict[VShapeType.VTriangle]++;
-                shape.SetName($"Triangle {shapeDict[VShapeType.VTriangle]}");
+                shapeDict[VShapeType.VTriangle]--;
             }
+
+            namesStrings.Remove(name);
+            shape.SetName(name);
         }
 
         /// <summary>
@@ -132,16 +145,15 @@ namespace NewVectorGraphEditorWPF.Models {
             if (shape is VRectangle) {
                 if (shapeDict[VShapeType.VTriangle] == 0) return;
                 shapeDict[VShapeType.VRectangle]--;
-                shape.SetName($"Rectangle {shapeDict[VShapeType.VRectangle]}");
             } else if (shape is VEllipse) {
                 if (shapeDict[VShapeType.VEllipse] == 0) return;
-                shapeDict[VShapeType.VEllipse]++;
-                shape.SetName($"Ellipse {shapeDict[VShapeType.VEllipse]}");
+                shapeDict[VShapeType.VEllipse]--;
             } else if (shape is VTriangle) {
                 if (shapeDict[VShapeType.VTriangle] == 0) return;
-                shapeDict[VShapeType.VTriangle]++;
-                shape.SetName($"Triangle {shapeDict[VShapeType.VTriangle]}");
+                shapeDict[VShapeType.VTriangle]--;
             }
+
+            namesStrings.RemoveAt(i);
         }
 
         /// <summary>
@@ -153,6 +165,7 @@ namespace NewVectorGraphEditorWPF.Models {
             base.Exchange(i, j);
             if (selectedShape == i) selectedShape = j;
             else if (selectedShape == j) selectedShape = i;
+            namesStrings.Exchange(i, j);
         }
 
         /// <summary>
@@ -166,6 +179,7 @@ namespace NewVectorGraphEditorWPF.Models {
             int sh2SelectedIndex = GetShapeIndex(sh2);
             if (selectedShape == sh1SelectedIndex) selectedShape = sh2SelectedIndex;
             else if (selectedShape == sh2SelectedIndex) selectedShape = sh2SelectedIndex;
+            namesStrings.Exchange(sh1SelectedIndex, sh2SelectedIndex);
         }
 
         /// <summary>
@@ -175,6 +189,7 @@ namespace NewVectorGraphEditorWPF.Models {
         public override void LiftDown(int i) {
             base.LiftDown(i);
             if (selectedShape == i) selectedShape--;
+            namesStrings.LiftDown(i);
         }
 
         /// <summary>
@@ -185,6 +200,7 @@ namespace NewVectorGraphEditorWPF.Models {
             base.LiftDown(sh);
             int shIndex = GetShapeIndex(sh);
             if (selectedShape == shIndex && selectedShape > 0) selectedShape--;
+            namesStrings.LiftDown(shIndex);
         }
 
         /// <summary>
@@ -194,6 +210,7 @@ namespace NewVectorGraphEditorWPF.Models {
         public override void LiftUp(int i) {
             base.LiftUp(i);
             if (selectedShape == i && selectedShape < shapes.Count - 1) selectedShape++;
+            namesStrings.LiftUp(i);
         }
 
         /// <summary>
@@ -204,6 +221,7 @@ namespace NewVectorGraphEditorWPF.Models {
             base.LiftUp(sh);
             int shIndex = GetShapeIndex(sh);
             if (selectedShape == shIndex && selectedShape < shapes.Count - 1) selectedShape++;
+            namesStrings.LiftUp(shIndex);
         }
 
         /// <summary>
@@ -213,6 +231,7 @@ namespace NewVectorGraphEditorWPF.Models {
         public override void LiftStraightUp(int i) {
             base.LiftStraightUp(i);
             if (selectedShape == i && i != -1) selectedShape = shapes.Count - 1;
+            namesStrings.LiftStraightUp(i);
         }
 
         /// <summary>
@@ -223,6 +242,7 @@ namespace NewVectorGraphEditorWPF.Models {
             base.LiftStraightUp(sh);
             int shIndex = GetShapeIndex(sh);
             if (selectedShape == shIndex && shIndex != -1) selectedShape = shapes.Count - 1;
+            namesStrings.LiftStraightUp(shIndex);
         }
 
         /// <summary>
@@ -232,6 +252,7 @@ namespace NewVectorGraphEditorWPF.Models {
         public override void LiftStraightDown(int i) {
             base.LiftStraightDown(i);
             if (selectedShape == i) selectedShape = 0;
+            namesStrings.LiftStraightDown(i);
         }
 
         /// <summary>
@@ -242,6 +263,7 @@ namespace NewVectorGraphEditorWPF.Models {
             base.LiftStraightDown(sh);
             int shIndex = GetShapeIndex(sh);
             if (selectedShape == shIndex) selectedShape = 0;
+            namesStrings.LiftStraightDown(shIndex);
         }
         #endregion
 
