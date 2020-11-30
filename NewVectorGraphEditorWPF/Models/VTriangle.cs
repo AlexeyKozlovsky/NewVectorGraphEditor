@@ -8,6 +8,7 @@ namespace NewVectorGraphEditorWPF.Models {
     /// <summary>
     /// Класс, определяющий треугольник
     /// </summary>
+    [Serializable]
     class VTriangle : VShape {
         #region Constructors
         public VTriangle(double width, double height) : base(width, height) { }

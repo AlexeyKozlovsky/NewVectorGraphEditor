@@ -8,6 +8,7 @@ namespace NewVectorGraphEditorWPF.Models {
     /// <summary>
     /// Класс определяющий векторную фигуру
     /// </summary>
+    [Serializable]
     abstract class VShape {
 
         #region Fields

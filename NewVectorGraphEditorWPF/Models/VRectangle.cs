@@ -8,6 +8,7 @@ namespace NewVectorGraphEditorWPF.Models {
     /// <summary>
     /// Класс, определяющий прямоугольник
     /// </summary>
+    [Serializable]
     class VRectangle : VShape {
         #region Constructors
         public VRectangle(double width, double height) : base(width, height) { }

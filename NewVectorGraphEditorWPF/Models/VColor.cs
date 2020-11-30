@@ -8,6 +8,7 @@ namespace NewVectorGraphEditorWPF.Models {
     /// <summary>
     /// Структура, определяющая цвет
     /// </summary>
+    [Serializable]
     struct VColor {
         #region Properties
         public byte Alpha { get; set; }     // Параметр альфа

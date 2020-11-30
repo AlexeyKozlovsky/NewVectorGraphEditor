@@ -8,6 +8,7 @@ namespace NewVectorGraphEditorWPF.Models {
     /// <summary>
     /// Класс, определяющий эллипс
     /// </summary>
+    [Serializable]
     class VEllipse : VShape {
         #region Constructors
         public VEllipse(double width, double height) : base(width, height) { }

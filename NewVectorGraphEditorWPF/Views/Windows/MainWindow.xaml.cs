@@ -3,8 +3,10 @@ using NewVectorGraphEditorWPF.ViewModels;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
@@ -58,7 +60,21 @@ namespace NewVectorGraphEditorWPF {
         }
 
         #region Methods
+        #region Update Methods
+        private void UpdateTrianglePoints() {
+            if (shapes[selectedShapeIndex] is Polygon) {
+                Polygon shape = (Polygon)shapes[selectedShapeIndex];
+                shape.Points = new PointCollection() {
+                    new Point(shape.Width/2, 0),
+                    new Point(0, shape.Height),
+                    new Point(shape.Width, shape.Height)
+                };
+            }
+        }
+
         private void UpdatePropGrid() {
+            propGrid.Visibility = Visibility.Visible;
+            selectedShapeIndex = vm.Field.VField.GetSelectedShapeIndex();
             currentElementNameTextBox.Text = vm.Field.VField.NamesStrings[vm.Field.VField.GetSelectedShapeIndex()];
             currentElementHeightTextBox.Text = vm.Field.VField[selectedShapeIndex].Height.ToString();
             currentElementWidthTextBox.Text = vm.Field.VField[selectedShapeIndex].Width.ToString();
@@ -67,8 +83,9 @@ namespace NewVectorGraphEditorWPF {
 
         private void UpdateElementsList() {
             int i = 0;
+            elementsListBox.Items.Clear();
             foreach (string name in vm.Field.VField.NamesStrings) {
-                if ((string)elementsListBox.Items[i] != name) elementsListBox.Items[i] = name;
+                elementsListBox.Items.Add(name);
                 i++;
             }
         }
@@ -92,24 +109,98 @@ namespace NewVectorGraphEditorWPF {
         }
 
         private void UpdateSelectedWidth() {
-            double newWidth;
+            double newWidth = 0;
             try { newWidth = double.Parse(currentElementWidthTextBox.Text); } catch {
-                System.Windows.MessageBox("")
-            }
-            double 
-            if (newWidth <= 0) {
                 System.Windows.MessageBox.Show("Ширина введена некорректно");
+                currentElementWidthTextBox.Text = vm.Field.VField.GetSelectedShape().Width.ToString();
+                return;
             }
 
+            if (newWidth <= 0) {
+                System.Windows.MessageBox.Show("Ширина введена некорректно");
+                currentElementWidthTextBox.Text = vm.Field.VField.GetSelectedShape().Width.ToString();
+                return;
+            }
+
+            VShape shape = vm.Field.VField.GetSelectedShape();
+            shape.ChangeSize(newWidth, shape.Height);
+            shapes[selectedShapeIndex].Width = newWidth;
+
+            if (shape is VTriangle) UpdateTrianglePoints();
         }
 
         private void UpdateSelectedHeight() {
+            double newHeight = 0;
+            try { newHeight = double.Parse(currentElementHeightTextBox.Text); } catch {
+                System.Windows.MessageBox.Show("Высота введена некорректно");
+                currentElementHeightTextBox.Text = vm.Field.VField.GetSelectedShape().Height.ToString();
+                return;
+            }
 
+            if (newHeight <= 0) {
+                System.Windows.MessageBox.Show("Высота не может быть отрицательна");
+                currentElementHeightTextBox.Text = vm.Field.VField.GetSelectedShape().Height.ToString();
+                return;
+            }
+
+            VShape shape = vm.Field.VField.GetSelectedShape();
+            shape.ChangeSize(shape.Width, newHeight);
+            shapes[selectedShapeIndex].Height = newHeight;
+            if (shape is VTriangle) UpdateTrianglePoints();
         }
 
         private void UpdateSelectedThickness() {
+            int newThickness = 0;
+            try { newThickness = int.Parse(currentElementThicknessTextBox.Text); } catch {
+                System.Windows.MessageBox.Show("Толщина введена некорректно");
+                currentElementThicknessTextBox.Text = vm.Field.VField.GetSelectedShape().StrokeThickness.ToString();
+                return;
+            }
 
+            if (newThickness <= 0) {
+                System.Windows.MessageBox.Show("Толщина не может быть отрицательна");
+                currentElementThicknessTextBox.Text = vm.Field.VField.GetSelectedShape().StrokeThickness.ToString();
+                return;
+            }
+
+            VShape shape = vm.Field.VField.GetSelectedShape();
+            shape.ChangeStrokeThickness(newThickness);
+            shapes[selectedShapeIndex].StrokeThickness = newThickness;
         }
+
+        private void UpdateShapes() {
+            canvas.Children.Clear();
+            shapes = new DrawCollection<Shape>();
+            int i = 0;
+            foreach (VShape shape in vm.Field.VField) {
+                Shape sh = new Ellipse();
+                if (shape is VEllipse) {
+                    sh = new Ellipse();
+                } else if (shape is VRectangle) {
+                    sh = new Rectangle();
+                } else if (shape is VTriangle) {
+                    sh = new Polygon();
+                    ((Polygon)sh).Points = new PointCollection() {
+                        new Point(0, shape.Height),
+                        new Point(shape.Width, shape.Height),
+                        new Point(shape.Width/2, 0)
+                    };
+                }
+
+                sh.Width = shape.Width;
+                sh.Height = shape.Height;
+                sh.Fill = new SolidColorBrush(Color.FromArgb(shape.Fill.Alpha, shape.Fill.Red, shape.Fill.Green, shape.Fill.Blue));
+                sh.Stroke = new SolidColorBrush(Color.FromArgb(shape.Stroke.Alpha, shape.Stroke.Red, shape.Stroke.Green, shape.Stroke.Blue));
+                sh.StrokeThickness = shape.StrokeThickness;
+
+                
+                Canvas.SetLeft(sh, shape.PositionX);
+                Canvas.SetTop(sh, shape.PositionY);
+                canvas.Children.Add(sh);
+                shapes.Add(sh);
+            }
+        }
+        #endregion
         #region Drawing Methods
 
         /// <summary>
@@ -221,6 +312,7 @@ namespace NewVectorGraphEditorWPF {
             Canvas.SetLeft(tr, minX);
             Canvas.SetTop(tr, minY);
             vm.Field.VField.GetSelectedShape().ChangeSize(width, height);
+
             //vm.Field.VField.GetSelectedShape().SetPosition(minX, minY);
 
         }
@@ -377,6 +469,37 @@ namespace NewVectorGraphEditorWPF {
             UpdatePropGrid();
         }
 
+        private void Sort() {
+            vm.Field.VField.SetSize(canvas.ActualWidth, canvas.ActualHeight);
+            vm.Field.VField.Sort();
+            UpdateShapes();
+            UpdateElementsList();
+        }
+
+        private void SaveFile() {
+            SaveFileDialog sfd = new SaveFileDialog();
+            if (sfd.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                BinaryFormatter formatter = new BinaryFormatter();
+                using (FileStream fs = new FileStream(sfd.FileName, FileMode.OpenOrCreate)) {
+                    formatter.Serialize(fs, vm.Field.VField);
+                }
+            }
+        }
+
+        private void OpenFile() {
+            OpenFileDialog ofd = new OpenFileDialog();
+            if (ofd.ShowDialog() == System.Windows.Forms.DialogResult.OK) {
+                BinaryFormatter formatter = new BinaryFormatter();
+                using (FileStream fs = new FileStream(ofd.FileName, FileMode.OpenOrCreate)) {
+                    vm.Field.VField = (VField)formatter.Deserialize(fs);
+                }
+            }
+
+            vm.Field.VField.SetSelectedShape(0);
+            UpdateShapes();
+            UpdateElementsList();
+            UpdatePropGrid();
+        }
         #endregion
 
         #region Events
@@ -429,18 +552,14 @@ namespace NewVectorGraphEditorWPF {
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void openButton_Click(object sender, RoutedEventArgs e) {
-
-        }
+        private void openButton_Click(object sender, RoutedEventArgs e) => OpenFile();
 
         /// <summary>
         /// Событие нажатия на кнопку "Сохранить файл"
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
-        private void saveButton_Click(object sender, RoutedEventArgs e) {
-
-        }
+        private void saveButton_Click(object sender, RoutedEventArgs e) => SaveFile();
 
         /// <summary>
         /// Событие нажатия на кнопку "На передний план"
@@ -495,17 +614,13 @@ namespace NewVectorGraphEditorWPF {
 
         private void elementsListBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => SelectionChanged();
 
-        private void currentElementWidthTextBox_LostFocus(object sender, RoutedEventArgs e) {
+        private void currentElementWidthTextBox_LostFocus(object sender, RoutedEventArgs e) => UpdateSelectedWidth();
 
-        }
+        private void currentElementHeightTextBox_LostFocus(object sender, RoutedEventArgs e) => UpdateSelectedHeight();
 
-        private void currentElementHeightTextBox_LostFocus(object sender, RoutedEventArgs e) {
+        private void currentElementThicknessTextBox_LostFocus(object sender, RoutedEventArgs e) => UpdateSelectedThickness();
+        private void sortButton_Click(object sender, RoutedEventArgs e) => Sort();
 
-        }
-
-        private void currentElementThicknessTextBox_LostFocus(object sender, RoutedEventArgs e) {
-
-        }
         #endregion
 
 

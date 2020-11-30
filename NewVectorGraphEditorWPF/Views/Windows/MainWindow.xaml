@@ -167,6 +167,11 @@
                         Click="drawTrModeButton_Click">
                     <md:PackIcon Kind="TriangleOutline"/>
                 </Button>
+                <Separator/>
+                <Button x:Name="sortButton" Style="{StaticResource btnStyle}"
+                        Click="sortButton_Click">
+                    <md:PackIcon Kind="Sort"/>
+                </Button>
                 <Separator Background="Black" Margin="40, 0"/>
                 <Button x:Name="openButton" Style="{StaticResource btnStyle}"
                         Click="openButton_Click">
@@ -176,6 +181,7 @@
                         Click="saveButton_Click">
                     <md:PackIcon Kind="ContentSaveOutline"/>
                 </Button>
+                
             </ToolBar>
         </Border>
 

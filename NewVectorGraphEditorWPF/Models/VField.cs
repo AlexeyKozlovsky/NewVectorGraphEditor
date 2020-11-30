@@ -8,6 +8,7 @@ namespace NewVectorGraphEditorWPF.Models {
     /// <summary>
     /// Класс, определяющий поле для фигур
     /// </summary>
+    [Serializable]
     class VField : VShapeCollection {
         #region Fields
         private double width;                           // Ширина поля
@@ -37,6 +38,10 @@ namespace NewVectorGraphEditorWPF.Models {
         #endregion
 
         #region Methods
+        public void SetSize(double width, double height) {
+            this.width = width;
+            this.height = height;
+        }
         /// <summary>
         /// Выделяет указанную фигуру
         /// </summary>
@@ -267,6 +272,33 @@ namespace NewVectorGraphEditorWPF.Models {
         }
         #endregion
 
+
+        public void Sort() {
+            double currentPosX = 0;
+            double currentPosY = 0;
+            double deltaX = 0;
+            double deltaY = 0;
+
+            double maxWidth = 0;
+            double maxHeight = 0;
+            foreach (VShape shape in shapes) {
+                if (shape.Width > maxWidth) maxWidth = shape.Height;
+                if (shape.Height > maxHeight) maxHeight = shape.Height;
+            }
+
+            deltaX = (width - maxWidth) / shapes.Count;
+            deltaY = (height - maxHeight) / shapes.Count;
+
+            for (int i = 0; i < shapes.Count - 1; i++) 
+                for (int j = i + 1; j < shapes.Count; j++) 
+                    if (shapes[i].GetSquare() > shapes[j].GetSquare()) Exchange(i, j);
+
+            foreach (VShape shape in shapes) {
+                shape.SetPosition(currentPosX, currentPosY);
+                currentPosX += deltaX;
+                currentPosY += deltaY;
+            }
+        }
         #endregion
     }
 }

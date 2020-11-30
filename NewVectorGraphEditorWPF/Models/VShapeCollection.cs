@@ -9,6 +9,7 @@ namespace NewVectorGraphEditorWPF.Models {
     /// <summary>
     /// Класс, определяющий коллекцию фигур
     /// </summary>
+    [Serializable]
     class VShapeCollection : IEnumerable, IEnumerator {
 
         #region IEnumarator and IEmunerable implementation

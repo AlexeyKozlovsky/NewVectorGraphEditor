@@ -6,6 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace NewVectorGraphEditorWPF.Models {
+    [Serializable]
     class DrawCollection<T> : IEnumerable<T>, IEnumerator<T> {
         #region IEnumerator and IEnumerable implementation
         private int position = -1;
