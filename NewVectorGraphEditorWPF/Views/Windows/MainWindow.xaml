@@ -71,7 +71,8 @@
 
 
                 <Border BorderBrush="DimGray" BorderThickness="2" Grid.Row="1" Margin="5">
-                    <ListBox x:Name="elementsListBox" Style="{StaticResource listBoxStyle}" SelectionChanged="elementsListBox_SelectionChanged">
+                    <ListBox x:Name="elementsListBox" Style="{StaticResource listBoxStyle}" SelectionChanged="elementsListBox_SelectionChanged"
+                             SelectionMode="Single">
 
                     </ListBox>
                 </Border>

@@ -20,6 +20,8 @@ namespace NewVectorGraphEditorWPF.Models {
 
         #region Methods
         public override double GetSquare() => this.width * this.height;
+        public override bool IsIn(double x, double y) => 
+            x >= this.PositionX && x <= this.PositionX + this.Width && y >= this.PositionY && y <= this.PositionY + this.Height;
         #endregion
     }
 }

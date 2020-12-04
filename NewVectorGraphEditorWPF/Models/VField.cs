@@ -299,6 +299,17 @@ namespace NewVectorGraphEditorWPF.Models {
                 currentPosY += deltaY;
             }
         }
+
+        public int GetClickShape(double x, double y) {
+            int result = -1;
+            int k = 0;
+            foreach (VShape sh in shapes) {
+                if (sh.IsIn(x, y)) result = k;
+                k++;
+            }
+
+            return result;
+        }
         #endregion
     }
 }

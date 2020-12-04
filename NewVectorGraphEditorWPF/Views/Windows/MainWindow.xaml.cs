@@ -320,6 +320,20 @@ namespace NewVectorGraphEditorWPF {
         /// Обновляет отрисовку текущей (выделенной) фигуры. Должен выполняться в фоновом потоке!
         /// </summary>
         private void UpdateSelectedShape() {
+            if (vm.Mode == EditMode.SelectMode && this.isPressed) {
+                Point position = Mouse.GetPosition(canvas);
+                this.selectedShapeIndex = vm.Field.VField.GetClickShape(position.X, position.Y);
+                if (this.selectedShapeIndex == -1) return;
+
+                VShape currentVShape = this.vm.Field.VField[this.selectedShapeIndex];
+                currentVShape.SetPosition(position.X - currentVShape.Width / 2, position.Y - currentVShape.Height / 2);
+                Shape currentShape = this.shapes[this.selectedShapeIndex];
+                Console.WriteLine($"{currentVShape.PositionX} {currentVShape.PositionY}");
+                Canvas.SetLeft(currentShape, currentVShape.PositionX);
+                Canvas.SetTop(currentShape, currentVShape.PositionY);
+                return;
+            }
+
             if (!isPressed) return;
             double x = Mouse.GetPosition(canvas).X;
             double y = Mouse.GetPosition(canvas).Y;
@@ -352,7 +366,7 @@ namespace NewVectorGraphEditorWPF {
         /// </summary>
         private void CanvasMouseLeftDown() {
             
-            if (vm.Mode != EditMode.SelectMode) this.isPressed = true;
+            this.isPressed = true;
             Point position = Mouse.GetPosition(canvas);
 
             switch (vm.Mode) {
@@ -366,6 +380,10 @@ namespace NewVectorGraphEditorWPF {
                     DrawTriangle(position.X, position.Y);
                     return;
             }
+
+        }
+
+        private void Select() {
 
         }
 
@@ -464,6 +482,7 @@ namespace NewVectorGraphEditorWPF {
         }
 
         private void SelectionChanged() {
+            if (elementsListBox.Items?.Count == 0) return;
             selectedShapeIndex = elementsListBox.SelectedIndex;
             vm.Field.VField.SetSelectedShape(selectedShapeIndex);
             UpdatePropGrid();
